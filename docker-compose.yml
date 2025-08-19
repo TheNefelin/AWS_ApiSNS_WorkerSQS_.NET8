@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  sns-api:
+    build:
+      context: .
+      dockerfile: AWS_SNS_MinimalApi/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - TOPIC_ARN=arn:aws:sns:us-east-1:123:pedidos-eventos
+      - AWS_REGION=us-east-1
+
+  sqs-worker:
+    build:
+      context: .
+      dockerfile: AWS_SQS_Worker/Dockerfile
+    environment:
+      - QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123/cola-procesamiento-pedidos
+      - AWS_REGION=us-east-1

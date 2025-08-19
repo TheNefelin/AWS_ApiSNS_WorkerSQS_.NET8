@@ -1,0 +1,30 @@
+# Archivos y carpetas de compilación
+**/bin/
+**/obj/
+**/out/
+
+# Archivos de usuario/IDE
+*.user
+*.suo
+*.vscode
+*.swp
+
+# Archivos de configuración de IDE
+.idea/
+.vscode/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Control de versiones
+.git
+.gitignore
+.gitattributes
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
