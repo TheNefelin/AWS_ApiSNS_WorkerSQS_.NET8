@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configure AWS region and SNS topic ARN
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
-var topicArn = Environment.GetEnvironmentVariable("SNS_TOPIC_ARN");
+var topicArn = Environment.GetEnvironmentVariable("SNS_TOPIC_ARN") ?? "arn:aws:sns:us-east-1:123:ecomexpress-sns-orders-events";
 
 // 2. Validate the topic ARN
 if (string.IsNullOrEmpty(region) || string.IsNullOrEmpty(topicArn))

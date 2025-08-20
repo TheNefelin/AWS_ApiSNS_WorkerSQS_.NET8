@@ -6,7 +6,7 @@ using System.Text.Json;
 
 // 1. Configure Environment Variables
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
-var queueUrl = Environment.GetEnvironmentVariable("SQS_QUEUE_URL");
+var queueUrl = Environment.GetEnvironmentVariable("SQS_QUEUE_URL") ?? "https://sqs.us-east-1.amazonaws.com/123/ecomexpress-sqs-worker";
 
 // 2. Validate the environment variables
 if (string.IsNullOrEmpty(region) || string.IsNullOrEmpty(queueUrl))
