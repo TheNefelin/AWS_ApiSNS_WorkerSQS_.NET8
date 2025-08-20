@@ -24,8 +24,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.MapGet("/status", () => Results.Ok(new { message = "API Corriendo" }));
+
 // 3. Define a simple model for the PedidoCreado event
-app.MapPost("/pedidos", async (PedidoCreado pedido, IAmazonSimpleNotificationService sns) =>
+app.MapPost("/api/pedidos", async (PedidoCreado pedido, IAmazonSimpleNotificationService sns) =>
 {
     var json = System.Text.Json.JsonSerializer.Serialize(pedido);
 
@@ -45,6 +47,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("./swagger/v1/swagger.json", "API v1"); // Usa "./" para compatibilidad
+    c.RoutePrefix = string.Empty;
+    c.DisplayRequestDuration(); // Opcional: muestra tiempo de respuesta
+});
 
 app.UseHttpsRedirection();
 
