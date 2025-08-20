@@ -4,23 +4,20 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Text.Json;
 
+// 1. Configure Environment Variables
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
-var queueUrl = Environment.GetEnvironmentVariable("QUEUE_URL");
+var queueUrl = Environment.GetEnvironmentVariable("SQS_QUEUE_URL");
 
-// Validación
+// 2. Validate the environment variables
 if (string.IsNullOrEmpty(region) || string.IsNullOrEmpty(queueUrl))
 {
-    throw new InvalidOperationException("Faltan las variables de entorno AWS_REGION o QUEUE_URL.");
-}
-else
-{
-    Console.WriteLine($"Usando región: {region}");
-    Console.WriteLine($"Usando URL de cola: {queueUrl}");
+    throw new InvalidOperationException("Faltan las variables de entorno AWS_REGION o SQS_QUEUE_URL.");
 }
 
-// Crear cliente SQS usando la región de la variable
+// 3. Create SQS Client
 var sqs = new AmazonSQSClient(RegionEndpoint.GetBySystemName(region));
 
+// 4. Start the message processing loop
 while (true)
 {
     var resp = await sqs.ReceiveMessageAsync(new ReceiveMessageRequest
@@ -35,7 +32,7 @@ while (true)
     {
         try
         {
-            // 1. Deserializar el sobre SNS
+            // 1️⃣ Deserializar el sobre SNS
             var envelope = JsonSerializer.Deserialize<SnsEnvelope>(msg.Body);
 
             if (envelope?.Message == null)
@@ -44,25 +41,26 @@ while (true)
                 continue;
             }
 
-            // 2. Deserializar el JSON real dentro de "Message"
+            // 2️⃣ Deserializar el JSON real dentro de "Message"
             var pedido = JsonSerializer.Deserialize<PedidoCreado>(envelope.Message);
 
             Console.WriteLine($"✅ Procesando pedido {pedido.PedidoId} de cliente {pedido.ClienteId}, total: {pedido.Total}");
 
-            // Procesar aquí (ej: actualizar DB, llamar API logística, etc.)
+            // 3️⃣ Procesar (guardar en DB, llamar servicio, etc.)
 
-            // 3. Borrar el mensaje de la cola después de procesarlo
+            // 4️⃣ Borrar el mensaje
             await sqs.DeleteMessageAsync(queueUrl, msg.ReceiptHandle);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Error procesando: {ex.Message}");
-            // No borramos → mensaje se reintentará hasta DLQ
+            // No borrar → SQS reintentará o DLQ
         }
     }
 }
 
-// Modelo del sobre SNS
+
+// 5. SNS message envelope model
 public class SnsEnvelope
 {
     public string Type { get; set; }
@@ -72,5 +70,5 @@ public class SnsEnvelope
     public string Timestamp { get; set; }
 }
 
-// Modelo de tu evento Pedido
+// 6. PedidoCreado event model
 public record PedidoCreado(Guid PedidoId, Guid ClienteId, DateTimeOffset Fecha, decimal Total);

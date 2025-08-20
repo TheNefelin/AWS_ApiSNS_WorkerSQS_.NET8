@@ -6,11 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configure AWS region and SNS topic ARN
 var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "us-east-1";
-var topicArn = Environment.GetEnvironmentVariable("TOPIC_ARN") ?? "arn:aws:sns:us-east-1:123:ecomexpress-sns";
+var topicArn = Environment.GetEnvironmentVariable("SNS_TOPIC_ARN");
 
-if (string.IsNullOrEmpty(topicArn))
+// 2. Validate the topic ARN
+if (string.IsNullOrEmpty(region) || string.IsNullOrEmpty(topicArn))
 {
-    throw new InvalidOperationException("El ARN del topic SNS no está configurado. Por favor, define TOPIC_ARN en tu configuración.");
+    throw new InvalidOperationException("Faltan las variables de entorno AWS_REGION o SNS_TOPIC_ARN.");
 }
 
 // 2. Register the Amazon SNS client
@@ -24,21 +25,32 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// 3. Check if the API is running
 app.MapGet("/status", () => Results.Ok(new { message = "API Corriendo" }));
 
-// 3. Define a simple model for the PedidoCreado event
+// 4. Define a simple model for the PedidoCreado event
 app.MapPost("/api/pedidos", async (PedidoCreado pedido, IAmazonSimpleNotificationService sns) =>
 {
-    var json = System.Text.Json.JsonSerializer.Serialize(pedido);
-
-    await sns.PublishAsync(new PublishRequest
+    try
     {
-        TopicArn = topicArn,
-        Message = json,
-        Subject = "Nuevo Pedido"
-    });
+        var json = System.Text.Json.JsonSerializer.Serialize(pedido);
 
-    return Results.Ok(new { status = "Publicado en SNS", pedido.PedidoId });
+        await sns.PublishAsync(new PublishRequest
+        {
+            TopicArn = topicArn,
+            Message = json,
+            Subject = "Nuevo Pedido"
+        });
+
+        return Results.Ok(new { status = "Publicado en SNS", pedido.PedidoId });
+    } catch (Exception ex)
+    {
+        return Results.Problem(
+          detail: ex.Message,
+          statusCode: 500,
+          title: "Error interno en la API"
+      );
+    }
 });
 
 // Configure the HTTP request pipeline.
@@ -48,6 +60,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// 5. Environments other than Development can still use Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -64,5 +77,5 @@ app.MapControllers();
 
 app.Run();
 
-// 4. Define the PedidoCreado record
+// 6. Define the PedidoCreado record
 public record PedidoCreado(Guid PedidoId, Guid ClienteId, DateTimeOffset Fecha, decimal Total);
