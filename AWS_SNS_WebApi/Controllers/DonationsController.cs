@@ -42,30 +42,38 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost("subscribe")]
-    public async Task<IActionResult> Subscribe(FormSubscribe formSubscribe)
+    public async Task<ActionResult<ApiResponse<string>>> Subscribe(FormSubscribe formSubscribe)
+    {
+        var apiResponse = await _snsService.Subscribe(formSubscribe);
+        return StatusCode(apiResponse.StatusCode, apiResponse);
+    }
+
+    [HttpPost("donate")]
+    public async Task<IActionResult> Donate(FormDonation formDonation)
     {
         try
         {
-            var message = await _snsService.Subscribe(formSubscribe);
+            var message = await _snsService.PublishIndividualDonation(formDonation);
             return Ok(new { message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error subscribing email: {Email}", formSubscribe.Email);
             return StatusCode(500, "Internal server error while subscribing.");
         }
     }
 
-    [HttpPost("donate")]
-    public async Task<IActionResult> Donate(FormDonation donation)
+    [HttpPost("notification")]
+    public async Task<IActionResult> SendMassNotification([FromBody] string message)
     {
         try
         {
-            return Ok(new { message = "Donation recorded successfully." });
+            await _snsService.PublishMassiveNotification(message);
+            return Ok(new { message = "Mass notification sent successfully." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Internal server error while subscribing.");
+            _logger.LogError(ex, "Error sending mass notification.");
+            return StatusCode(500, "Internal server error while sending mass notification.");
         }
     }
 }
