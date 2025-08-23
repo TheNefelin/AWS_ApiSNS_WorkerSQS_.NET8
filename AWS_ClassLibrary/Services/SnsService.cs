@@ -190,7 +190,11 @@ public class SnsService
                     // Este atributo de mensaje coincide con la política de filtro de un solo usuario
                     {
                         "user_email",
-                        new MessageAttributeValue { DataType = "String", StringValue = formDonation.Email }
+                        new MessageAttributeValue 
+                        { 
+                            DataType = "String", 
+                            StringValue = formDonation.Email 
+                        }
                     }
                 }
             };
