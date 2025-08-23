@@ -93,3 +93,8 @@ jobs:
 | ------------------------- | ------------------------------------------------------- |
 | `DOCKER_HUB_USERNAME`     | Tu usuario de Docker Hub                                |
 | `DOCKER_HUB_ACCESS_TOKEN` | Token de acceso generado en Docker Hub (no tu password) |
+
+
+## AWS_SNS_MinimalApi + AWS_SQS_Worker
+
+## AWS_SNS_WebApi + AWS_SQS_WebConsole_Worker

@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Consola en Tiempo Real</title>
+    <style>
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            margin: 0;
+        }
+
+        #console {
+            height: 100vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .message {
+            line-height: 1.4;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="console">
+        Conectando con la consola del servidor...
+        Inicializando Worker...
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/consoleHub")
+            .build();
+
+        connection.on("ReceiveMessage", (message) => {
+            const consoleElement = document.getElementById('console');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message';
+            newMessage.textContent = message;
+
+            consoleElement.appendChild(newMessage);
+            // Scroll automático al último mensaje
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        });
+
+        connection.start().catch(err => {
+            document.getElementById('console').textContent = 'Error de conexión: ' + err;
+        });
+    </script>
+</body>
+</html>

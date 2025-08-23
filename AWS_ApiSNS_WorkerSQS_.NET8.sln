@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		docker-compose.yml = docker-compose.yml
+		PostgreSQL.sql = PostgreSQL.sql
 		README.md = README.md
 		Script_AWS_CloudShell.sh = Script_AWS_CloudShell.sh
 		Script_DockerCompose.sh = Script_DockerCompose.sh
@@ -15,6 +16,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_SNS_MinimalApi", "AWS_SNS_MinimalApi\AWS_SNS_MinimalApi.csproj", "{4A4BE8A2-08FB-4D53-8E05-7490D2C05EE1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_SQS_Worker", "AWS_SQS_Worker\AWS_SQS_Worker.csproj", "{7F536B58-0592-4AC2-BF45-786E0E5523DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_SQS_WebConsole_Worker", "AWS_SQS_WebConsole_Worker\AWS_SQS_WebConsole_Worker.csproj", "{B493290F-8717-4217-965E-26556DDA922F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_ClassLibrary", "AWS_ClassLibrary\AWS_ClassLibrary.csproj", "{4AD8846D-7311-4AED-9377-CCDE171D9666}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_SNS_WebApi", "AWS_SNS_WebApi\AWS_SNS_WebApi.csproj", "{D601706E-06DD-41F7-8D8D-EB129E265898}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +37,18 @@ Global
 		{7F536B58-0592-4AC2-BF45-786E0E5523DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F536B58-0592-4AC2-BF45-786E0E5523DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F536B58-0592-4AC2-BF45-786E0E5523DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B493290F-8717-4217-965E-26556DDA922F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B493290F-8717-4217-965E-26556DDA922F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B493290F-8717-4217-965E-26556DDA922F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B493290F-8717-4217-965E-26556DDA922F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AD8846D-7311-4AED-9377-CCDE171D9666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AD8846D-7311-4AED-9377-CCDE171D9666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AD8846D-7311-4AED-9377-CCDE171D9666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AD8846D-7311-4AED-9377-CCDE171D9666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D601706E-06DD-41F7-8D8D-EB129E265898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D601706E-06DD-41F7-8D8D-EB129E265898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D601706E-06DD-41F7-8D8D-EB129E265898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D601706E-06DD-41F7-8D8D-EB129E265898}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
