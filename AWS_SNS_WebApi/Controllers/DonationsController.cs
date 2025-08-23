@@ -42,38 +42,30 @@ public class DonationsController : ControllerBase
     }
 
     [HttpPost("subscribe")]
-    public async Task<ActionResult<ApiResponse<string>>> Subscribe(FormSubscribe formSubscribe)
+    public async Task<ActionResult<ApiResponse<string>>> Subscribe(FormEmail formEmail)
     {
-        var apiResponse = await _snsService.Subscribe(formSubscribe);
+        var apiResponse = await _snsService.Subscribe(formEmail);
+        return StatusCode(apiResponse.StatusCode, apiResponse);
+    }
+
+    [HttpPost("unsubscribe")]
+    public async Task<ActionResult<ApiResponse<string>>> Unsubscribe(FormEmail formEmail)
+    {
+        var apiResponse = await _snsService.Unsubscribe(formEmail);
         return StatusCode(apiResponse.StatusCode, apiResponse);
     }
 
     [HttpPost("donate")]
-    public async Task<IActionResult> Donate(FormDonation formDonation)
+    public async Task<ActionResult<ApiResponse<string>>> Donate(FormDonation formDonation)
     {
-        try
-        {
-            var message = await _snsService.PublishIndividualDonation(formDonation);
-            return Ok(new { message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Internal server error while subscribing.");
-        }
+        var apiResponse = await _snsService.PublishIndividualDonation(formDonation);
+        return StatusCode(apiResponse.StatusCode, apiResponse);
     }
 
     [HttpPost("notification")]
-    public async Task<IActionResult> SendMassNotification([FromBody] string message)
+    public async Task<ActionResult<ApiResponse<string>>> SendMassNotification(string message)
     {
-        try
-        {
-            await _snsService.PublishMassiveNotification(message);
-            return Ok(new { message = "Mass notification sent successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending mass notification.");
-            return StatusCode(500, "Internal server error while sending mass notification.");
-        }
+        var apiResponse = await _snsService.PublishMassiveNotification(message);
+        return StatusCode(apiResponse.StatusCode, apiResponse);
     }
 }

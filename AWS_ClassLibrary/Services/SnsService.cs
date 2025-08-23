@@ -2,27 +2,30 @@
 using Amazon.SimpleNotificationService.Model;
 using AWS_ClassLibrary.DTOs;
 using AWS_ClassLibrary.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace AWS_ClassLibrary.Services;
 
 public class SnsService
 {
-    private readonly SnsConfig _snsConfig;
+    private readonly ILogger<SnsService> _logger;
     private readonly IAmazonSimpleNotificationService _snsClient;
+    private readonly SnsConfig _snsConfig;
 
-    public SnsService(SnsConfig snsConfig, IAmazonSimpleNotificationService snsClient)
+    public SnsService(ILogger<SnsService> logger, IAmazonSimpleNotificationService snsClient, SnsConfig snsConfig)
     {
-        _snsConfig = snsConfig;
+        _logger = logger;
         _snsClient = snsClient;
+        _snsConfig = snsConfig;
     }
 
     // Método de Subscribe con la política de filtro
-    public async Task<ApiResponse<string>> Subscribe(FormSubscribe formSubscribe)
+    public async Task<ApiResponse<string>> Subscribe(FormEmail formEmail)
     {
         try
         {
-            var existingSubscription = await ExistingSubscription(formSubscribe.Email);
+            var existingSubscription = await ExistingSubscription(formEmail.Email);
             if (existingSubscription != null)
             {
                 if (existingSubscription.SubscriptionArn == "PendingConfirmation")
@@ -49,15 +52,15 @@ public class SnsService
             // O si el mensaje tiene el atributo tipo_notificacion='masiva'.
             var filterPolicy = new Dictionary<string, List<string>>
             {
-                { "user_email", new List<string> { formSubscribe.Email } },
-                { "tipo_notificacion", new List<string> { "masiva" } }
+                { "user_email", new List<string> { formEmail.Email } },
+                { "massive_notification", new List<string> { "true" } }
             };
 
             var request = new SubscribeRequest
             {
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
                 Protocol = "email",
-                Endpoint = formSubscribe.Email,
+                Endpoint = formEmail.Email,
                 Attributes = new Dictionary<string, string>
                 {
                     { "FilterPolicy", JsonConvert.SerializeObject(filterPolicy) }
@@ -76,8 +79,8 @@ public class SnsService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error subscribing {formSubscribe.Email} to {_snsConfig.SNS_TOPIC_ARN}: {ex.Message}");
-            
+            _logger.LogError(ex, "Error al suscribirse");
+
             return new ApiResponse<string>
             {
                 Success = false,
@@ -87,36 +90,101 @@ public class SnsService
         }
     }
 
+    public async Task<ApiResponse<string>> Unsubscribe(FormEmail formEmail)
+    {
+        try
+        {
+            var subscription = await ExistingSubscription(formEmail.Email);
+
+            if (subscription == null || subscription.SubscriptionArn == "PendingConfirmation")
+            {
+                return new ApiResponse<string>
+                {
+                    Success = false,
+                    StatusCode = 404,
+                    Message = "No se encontró una suscripción activa para este correo."
+                };
+            }
+
+            await _snsClient.UnsubscribeAsync(subscription.SubscriptionArn);
+
+            return new ApiResponse<string>
+            {
+                Success = true,
+                StatusCode = 200,
+                Message = $"El correo {formEmail.Email} ha sido desuscrito correctamente."
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al desuscribirse");
+
+            return new ApiResponse<string>
+            {
+                Success = false,
+                StatusCode = 500,
+                Message = $"Error interno al desuscribirse: {ex}"
+            };
+        }
+    }
+
+
     // Método para enviar un mensaje individual (la factura de la donación)
-    public async Task<string> PublishIndividualDonation(FormDonation formDonation)
+    public async Task<ApiResponse<string>> PublishIndividualDonation(FormDonation formDonation)
     {
         try
         {
             if (formDonation.Amount < 1 || formDonation.Amount > 3)
             {
-                return "La cantidad de donacion debe ser entre 1 y 3";
+                return new ApiResponse<string>
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = "La cantidad de donacion debe ser entre 1 y 3",
+                };
             }
 
             var existingSubscription = await ExistingSubscription(formDonation.Email);
             if (existingSubscription == null)
             {
-                return "No estás suscrito.";
+                return new ApiResponse<string>
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = "No estás suscrito.",
+                };
             }
             else
             {
                 if (existingSubscription.SubscriptionArn == "PendingConfirmation")
                 {
-                    return "Solicitud de suscripción ya enviada. Revisa tu correo para confirmar.";
+                    return new ApiResponse<string>
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        Message = "Debes aceptar la suscripción. Revisa tu correo para confirmar.",
+                    };
                 }
             }
 
-            var json = JsonConvert.SerializeObject(formDonation);
+            //var json = JsonConvert.SerializeObject(formDonation);
+
+            string htmlMessage = $@"
+                <html>
+                  <body>
+                    <h2>Gracias por tu pedido #{123456}</h2>
+                    <p>Hola {formDonation.Email},</p>
+                    <p>Tu pedido fue registrado con éxito.</p>
+                    <p>Total: {formDonation.Amount:C}</p>
+                  </body>
+                </html>";
 
             var request = new PublishRequest
             {
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
-                Message = json,
                 Subject = "¡Gracias por tu donación!",
+                //Message = json,
+                Message = htmlMessage,
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {
                     // Este atributo de mensaje coincide con la política de filtro de un solo usuario
@@ -129,35 +197,91 @@ public class SnsService
 
             var response = await _snsClient.PublishAsync(request);
 
-            return $"Gracias por tu donación [{response.MessageId}], recibirás la factura con los regalos donados.";
+            return new ApiResponse<string>
+            {
+                Success = true,
+                StatusCode = 200,
+                Message = $"Gracias por tu donación [{response.MessageId}], recibirás la factura con los regalos donados.",
+                Data = formDonation.Amount.ToString()
+            };
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending donation notification: {ex.Message}");
-            throw;
+            _logger.LogError(ex, "Error al enviar la notificación de donación");
+
+            return new ApiResponse<string>
+            {
+                Success = false,
+                StatusCode = 500,
+                Message = $"Error interno del servidor al enviar la notificación de donación: {ex}",
+            };
         }
     }
 
     // Método para enviar un mensaje masivo (a todos los suscriptores)
-    public async Task<string> PublishMassiveNotification(string messageContent)
+    public async Task<ApiResponse<string>> PublishMassiveNotification(string messageContent)
     {
-        var request = new PublishRequest
+        try
         {
-            TopicArn = _snsConfig.SNS_TOPIC_ARN,
-            Message = messageContent,
-            Subject = "Actualización Importante sobre Donaciones",
-            MessageAttributes = new Dictionary<string, MessageAttributeValue>
+            if (string.IsNullOrWhiteSpace(messageContent))
             {
-                // Este atributo de mensaje coincide con la política de filtro para mensajes masivos
+                return new ApiResponse<string>
                 {
-                    "tipo_notificacion",
-                    new MessageAttributeValue { DataType = "String", StringValue = "masiva" }
-                }
+                    Success = false,
+                    StatusCode = 400,
+                    Message = "El contenido del mensaje no puede estar vacío.",
+                };
             }
-        };
 
-        var response = await _snsClient.PublishAsync(request);
-        return response.MessageId;
+            string htmlMessage = $@"
+                <html>
+                  <body>
+                    <h2>Actualización Importante sobre Donaciones</h2>
+                    <p>{messageContent}</p>
+                    <p><i>Este correo fue generado automáticamente por nuestro sistema de donaciones.</i></p>
+                  </body>
+                </html>";
+
+            var request = new PublishRequest
+            {
+                TopicArn = _snsConfig.SNS_TOPIC_ARN,
+                Subject = "Actualización Importante sobre Donaciones",
+                Message = htmlMessage,
+                MessageAttributes = new Dictionary<string, MessageAttributeValue>
+                {
+                    // Este atributo de mensaje coincide con la política de filtro para mensajes masivos
+                    {
+                        "massive_notification",
+                        new MessageAttributeValue
+                        {
+                            DataType = "String",
+                            StringValue = "true"
+                        }
+                    }
+                }
+            };
+
+            var response = await _snsClient.PublishAsync(request);
+
+            return new ApiResponse<string>
+            {
+                Success = true,
+                StatusCode = 200,
+                Message = $"Notificación masiva enviada con éxito [{response.MessageId}].",
+                Data = messageContent
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al enviar la notificación masiva");
+
+            return new ApiResponse<string>
+            {
+                Success = false,
+                StatusCode = 500,
+                Message = $"Error interno del servidor al enviar la notificación masiva: {ex}",
+            };
+        }
     }
 
     private async Task<Subscription?> ExistingSubscription(string email)

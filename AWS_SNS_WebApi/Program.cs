@@ -18,8 +18,10 @@ builder.Services.AddSingleton<IAmazonSimpleNotificationService>(sp => {
 
 var DB_HOST = builder.Configuration["DB_HOST"] ?? "localhost";
 var DB_PORT = builder.Configuration["DB_PORT"] ?? "5432";
-var DB_NAME = builder.Configuration["DB_NAME"] ?? "db_testing";
-var DB_USER = builder.Configuration["DB_USER"] ?? "testing";
+var DB_NAME = builder.Configuration["DB_NAME"] ?? "postgres";
+var DB_USER = builder.Configuration["DB_USER"] ?? "postgres";
+//var DB_NAME = builder.Configuration["DB_NAME"] ?? "db_testing";
+//var DB_USER = builder.Configuration["DB_USER"] ?? "testing";
 var DB_PASSWORD = builder.Configuration["DB_PASSWORD"] ?? "testing";
 
 var _connectionString = $"Host={DB_HOST};Port={DB_PORT};Database={DB_NAME};Username={DB_USER};Password={DB_PASSWORD}";
