@@ -2,10 +2,8 @@
 
 namespace AWS_ClassLibrary.Models;
 
-public class Donation
+public class FormSubscribe
 {
     [EmailAddress]
     public required string Email { get; set; }
-
-    public required int amount { get; set; }
 }

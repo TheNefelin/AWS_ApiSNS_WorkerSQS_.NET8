@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AWS_ClassLibrary.Models;
+namespace AWS_ClassLibrary.Entities;
 
 public class Product
 {
