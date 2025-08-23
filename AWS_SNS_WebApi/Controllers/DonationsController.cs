@@ -1,10 +1,8 @@
 ﻿using AWS_ClassLibrary.Context;
-using AWS_ClassLibrary.Entities;
+using AWS_ClassLibrary.DTOs;
 using AWS_ClassLibrary.Models;
 using AWS_ClassLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 
 namespace AWS_SNS_WebApi.Controllers;
 
@@ -30,14 +28,14 @@ public class DonationsController : ControllerBase
     }
 
     [HttpGet("companies")]
-    public async Task<ActionResult<IEnumerable<Company>>> GetCompanies()
+    public async Task<ActionResult<IEnumerable<CompanyDTO>>> GetCompanies()
     {
         var companies = await _context.GetCompanies();
         return Ok(companies);
     }
 
     [HttpGet("products")]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
     {
         var products = await _context.GetProducts();
         return Ok(products);
