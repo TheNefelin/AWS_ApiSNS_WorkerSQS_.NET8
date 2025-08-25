@@ -48,12 +48,15 @@ public class SnsService
                 }
             }
 
-            // Política de filtro: el usuario recibirá mensajes si su user_email coincide
-            // O si el mensaje tiene el atributo tipo_notificacion='masiva'.
+            // El usuario recibirá mensajes si el atributo "target" es igual a su email O es "all"
             var filterPolicy = new Dictionary<string, List<string>>
             {
-                { "user_email", new List<string> { formEmail.Email } },
-                { "massive_notification", new List<string> { "true" } }
+                { 
+                    "target", 
+                    new List<string> { 
+                        formEmail.Email, "all" 
+                    } 
+                }
             };
 
             var request = new SubscribeRequest
@@ -183,17 +186,17 @@ public class SnsService
             {
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
                 Subject = "¡Gracias por tu donación!",
-                //Message = json,
                 Message = htmlMessage,
+                MessageStructure = "json",
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {
                     // Este atributo de mensaje coincide con la política de filtro de un solo usuario
                     {
-                        "user_email",
-                        new MessageAttributeValue 
-                        { 
-                            DataType = "String", 
-                            StringValue = formDonation.Email 
+                        "target",
+                        new MessageAttributeValue
+                        {
+                            DataType = "String",
+                            StringValue = formDonation.Email
                         }
                     }
                 }
@@ -251,15 +254,16 @@ public class SnsService
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
                 Subject = "Actualización Importante sobre Donaciones",
                 Message = htmlMessage,
+                MessageStructure = "json",
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {
                     // Este atributo de mensaje coincide con la política de filtro para mensajes masivos
                     {
-                        "massive_notification",
+                        "target",
                         new MessageAttributeValue
                         {
                             DataType = "String",
-                            StringValue = "true"
+                            StringValue = "all"
                         }
                     }
                 }
