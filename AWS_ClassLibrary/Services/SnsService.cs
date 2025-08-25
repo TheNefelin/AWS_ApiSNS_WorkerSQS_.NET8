@@ -170,24 +170,32 @@ public class SnsService
                 }
             }
 
-            //var json = JsonConvert.SerializeObject(formDonation);
+            string textMessage = $@"
+            🎉 ¡GRACIAS POR TU DONACIÓN! 🎉
 
-            string htmlMessage = $@"
-                <html>
-                  <body>
-                    <h2>Gracias por tu pedido #{123456}</h2>
-                    <p>Hola {formDonation.Email},</p>
-                    <p>Tu pedido fue registrado con éxito.</p>
-                    <p>Total: {formDonation.Amount:C}</p>
-                  </body>
-                </html>";
+            Hola {formDonation.Email},
+
+            ✅ Tu donación fue registrada con éxito.
+
+            📝 DETALLES DE TU PEDIDO:
+               • Pedido: #{123456}
+               • Total: {formDonation.Amount:C}
+               • Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}
+
+            🎁 ¡Muchas gracias por tu generosidad!
+
+            ---
+            Este correo fue generado automáticamente por nuestro sistema de donaciones.";
+
+            //var json = JsonConvert.SerializeObject(messageBody);
 
             var request = new PublishRequest
             {
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
-                Subject = "¡Gracias por tu donación!",
-                Message = htmlMessage,
-                MessageStructure = "json",
+                Subject = "🎉 ¡Gracias por tu donación!",
+                Message = textMessage.Trim(),
+                //Message = json,
+                //MessageStructure = "json",
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {
                     // Este atributo de mensaje coincide con la política de filtro de un solo usuario
@@ -240,21 +248,12 @@ public class SnsService
                 };
             }
 
-            string htmlMessage = $@"
-                <html>
-                  <body>
-                    <h2>Actualización Importante sobre Donaciones</h2>
-                    <p>{messageContent}</p>
-                    <p><i>Este correo fue generado automáticamente por nuestro sistema de donaciones.</i></p>
-                  </body>
-                </html>";
 
             var request = new PublishRequest
             {
                 TopicArn = _snsConfig.SNS_TOPIC_ARN,
                 Subject = "Actualización Importante sobre Donaciones",
-                Message = htmlMessage,
-                MessageStructure = "json",
+                Message = messageContent,
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {
                     // Este atributo de mensaje coincide con la política de filtro para mensajes masivos
