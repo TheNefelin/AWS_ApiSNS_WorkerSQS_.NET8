@@ -13,27 +13,86 @@ public class AppDbContext : DbContext
 
     public async Task<IEnumerable<CompanyDTO>> GetCompanies()
     {
-        var entity = await companies.ToListAsync();
-
-        return entity.Select(e => new CompanyDTO
+        try
         {
-            Company_id = e.Company_id,
-            Name = e.Name,
-            Email = e.Email,
-            Img = e.Img
-        });
+            var entities = await companies.ToListAsync();
+
+            return entities.Select(e => new CompanyDTO
+            {
+                Company_id = e.Company_id,
+                Name = e.Name,
+                Email = e.Email,
+                Img = e.Img
+            });
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async Task<CompanyDTO?> GetCompanyRandom()
+    {
+        try
+        {
+            var entity = await companies.OrderBy(c => Guid.NewGuid()).FirstOrDefaultAsync();
+
+            if (entity != null)
+            {
+                return new CompanyDTO
+                {
+                    Company_id = entity.Company_id,
+                    Name = entity.Name,
+                    Email = entity.Email,
+                    Img = entity.Img
+                };
+            }
+
+            return null;
+        }
+        catch
+        {
+            throw;
+        }
     }
 
     public async Task<IEnumerable<ProductDTO>> GetProducts()
     {
-        var entity = await products.ToListAsync();
-
-        return entity.Select(e => new ProductDTO
+        try
         {
-            Product_id = e.Product_id,
-            Name = e.Name,
-            Description = e.Description,
-            Price = e.Price
-        });
+            var entities = await products.ToListAsync();
+
+            return entities.Select(e => new ProductDTO
+            {
+                Product_id = e.Product_id,
+                Name = e.Name,
+                Description = e.Description,
+                Price = e.Price
+            });
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<ProductDTO>> GetProdctsByAmount(int amount)
+    {
+        try
+        {
+            var entities = await products.OrderBy(p => Guid.NewGuid()).Take(amount).ToListAsync();
+
+            return entities.Select(e => new ProductDTO
+            {
+                Product_id = e.Product_id,
+                Name = e.Name,
+                Description = e.Description,
+                Price = e.Price
+            });
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
     }
 }

@@ -11,13 +11,13 @@ public class SnsService
 {
     private readonly ILogger<SnsService> _logger;
     private readonly IAmazonSimpleNotificationService _snsClient;
-    private readonly SnsConfig _snsConfig;
+    private readonly AWSOptions _awsOptions;
 
-    public SnsService(ILogger<SnsService> logger, IAmazonSimpleNotificationService snsClient, SnsConfig snsConfig)
+    public SnsService(ILogger<SnsService> logger, IAmazonSimpleNotificationService snsClient, AWSOptions awsOptions)
     {
         _logger = logger;
         _snsClient = snsClient;
-        _snsConfig = snsConfig;
+        _awsOptions = awsOptions;
     }
 
     // Método de Subscribe con la política de filtro
@@ -61,7 +61,7 @@ public class SnsService
 
             var request = new SubscribeRequest
             {
-                TopicArn = _snsConfig.SNS_TOPIC_ARN,
+                TopicArn = _awsOptions.SNS_TOPIC_ARN,
                 Protocol = "email",
                 Endpoint = formEmail.Email,
                 Attributes = new Dictionary<string, string>
@@ -133,65 +133,49 @@ public class SnsService
 
 
     // Método para enviar un mensaje individual (la factura de la donación)
-    public async Task<ApiResponse<string>> PublishIndividualDonation(FormDonation formDonation)
+    public async Task<string> PublishIndividualDonation(string email, int total, string downloadLink)
     {
         try
         {
-            if (formDonation.Amount < 1 || formDonation.Amount > 3)
-            {
-                return new ApiResponse<string>
-                {
-                    Success = false,
-                    StatusCode = 400,
-                    Message = "La cantidad de donacion debe ser entre 1 y 3",
-                };
-            }
+            var existingSubscription = await ExistingSubscription(email);
 
-            var existingSubscription = await ExistingSubscription(formDonation.Email);
             if (existingSubscription == null)
             {
-                return new ApiResponse<string>
-                {
-                    Success = false,
-                    StatusCode = 400,
-                    Message = "No estás suscrito.",
-                };
+                return "No estás suscrito. Por favor, suscríbete primero.";
             }
             else
             {
                 if (existingSubscription.SubscriptionArn == "PendingConfirmation")
                 {
-                    return new ApiResponse<string>
-                    {
-                        Success = false,
-                        StatusCode = 400,
-                        Message = "Debes aceptar la suscripción. Revisa tu correo para confirmar.",
-                    };
+                    return "Debes aceptar la suscripción. Revisa tu correo para confirmar.";
                 }
             }
 
             string textMessage = $@"
             🎉 ¡GRACIAS POR TU DONACIÓN! 🎉
 
-            Hola {formDonation.Email},
+            Hola {email},
 
             ✅ Tu donación fue registrada con éxito.
 
             📝 DETALLES DE TU PEDIDO:
                • Pedido: #{123456}
-               • Total: {formDonation.Amount:C}
+               • Total: {total:C}
                • Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}
 
             🎁 ¡Muchas gracias por tu generosidad!
 
             ---
-            Este correo fue generado automáticamente por nuestro sistema de donaciones.";
+            Este correo fue generado automáticamente por nuestro sistema de donaciones.
+            ---
+
+            ¡DESCARGA TU FACTURA AQUí: {downloadLink}";
 
             //var json = JsonConvert.SerializeObject(messageBody);
 
             var request = new PublishRequest
             {
-                TopicArn = _snsConfig.SNS_TOPIC_ARN,
+                TopicArn = _awsOptions.SNS_TOPIC_ARN,
                 Subject = "🎉 ¡Gracias por tu donación!",
                 Message = textMessage.Trim(),
                 //Message = json,
@@ -204,7 +188,7 @@ public class SnsService
                         new MessageAttributeValue
                         {
                             DataType = "String",
-                            StringValue = formDonation.Email
+                            StringValue = email
                         }
                     }
                 }
@@ -212,24 +196,13 @@ public class SnsService
 
             var response = await _snsClient.PublishAsync(request);
 
-            return new ApiResponse<string>
-            {
-                Success = true,
-                StatusCode = 200,
-                Message = $"Gracias por tu donación [{response.MessageId}], recibirás la factura con los regalos donados.",
-                Data = formDonation.Amount.ToString()
-            };
+            return null;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al enviar la notificación de donación");
 
-            return new ApiResponse<string>
-            {
-                Success = false,
-                StatusCode = 500,
-                Message = $"Error interno del servidor al enviar la notificación de donación: {ex}",
-            };
+            throw;
         }
     }
 
@@ -251,7 +224,7 @@ public class SnsService
 
             var request = new PublishRequest
             {
-                TopicArn = _snsConfig.SNS_TOPIC_ARN,
+                TopicArn = _awsOptions.SNS_TOPIC_ARN,
                 Subject = "Actualización Importante sobre Donaciones",
                 Message = messageContent,
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
@@ -295,7 +268,7 @@ public class SnsService
     {
         var subscriptionList = await _snsClient.ListSubscriptionsByTopicAsync(new ListSubscriptionsByTopicRequest
         {
-            TopicArn = _snsConfig.SNS_TOPIC_ARN
+            TopicArn = _awsOptions.SNS_TOPIC_ARN
         });
 
         if (subscriptionList?.Subscriptions == null)
