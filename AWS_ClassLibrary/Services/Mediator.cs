@@ -11,13 +11,15 @@ public class Mediator
     private readonly AppDbContext _context;
     private readonly S3Service _s3Service;
     private readonly SnsService _snsService;
+    private readonly InvoiceGenerator _invoiceGenerator;
 
-    public Mediator(ILogger<Mediator> logger, AppDbContext context, S3Service s3Service, SnsService snsService)
+    public Mediator(ILogger<Mediator> logger, AppDbContext context, S3Service s3Service, SnsService snsService, InvoiceGenerator invoiceGenerator)
     {
         _logger = logger;
         _context = context;
         _s3Service = s3Service;
         _snsService = snsService;
+        _invoiceGenerator = invoiceGenerator;
     }
 
     public async Task<ApiResponse<string>> GetReason()
@@ -177,7 +179,7 @@ public class Mediator
 
             using var imgStream = await _s3Service.GetFileStreamFromBucket(company.Img!);
 
-            var pdfStream = InvoiceGenerator.CreateStreamPdf(formDonation, company, products.ToList(), imgStream);
+            var pdfStream = _invoiceGenerator.CreateStreamPdf(formDonation, company, products.ToList(), imgStream);
             var fileName = await _s3Service.SavePdfToBucket(pdfStream);
             string downloadLink = _s3Service.GeneratePreSignedUrl(fileName, TimeSpan.FromDays(7));
 

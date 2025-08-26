@@ -57,7 +57,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // Configuración de Mediator -------------------------------------------------------------------------
-builder.Services.AddScoped<Mediator>();
+builder.Services.AddSingleton<Mediator>();
+builder.Services.AddSingleton<InvoiceGenerator>();
 
 // ---------------------------------------------------------------------------------------------------
 builder.Services.AddControllers();

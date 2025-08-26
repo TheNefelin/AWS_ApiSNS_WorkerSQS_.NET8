@@ -8,7 +8,7 @@ namespace AWS_ClassLibrary.Services;
 
 public class InvoiceGenerator
 {
-    public static Stream CreateStreamPdf(FormDonation donation, CompanyDTO company, List<ProductDTO> products, Stream imgStream)
+    public Stream CreateStreamPdf(FormDonation donation, CompanyDTO company, List<ProductDTO> products, Stream imgStream)
     {
         // Asegúrate de usar la versión Community de la librería
         // Nota: Solo necesitas establecer esto una vez en tu aplicación, no en cada llamada.
