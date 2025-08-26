@@ -82,10 +82,4 @@ public class DonationsController : ControllerBase
         var apiResponse = await _snsService.PublishMassiveNotification(message);
         return StatusCode(apiResponse.StatusCode, apiResponse);
     }
-
-    [HttpGet("test")]
-    public async Task<ActionResult<ApiResponse<string>>> pdf()
-    {
-        return null;
-    }
 }
