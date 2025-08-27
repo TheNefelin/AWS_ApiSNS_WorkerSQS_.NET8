@@ -98,3 +98,77 @@ jobs:
 ## AWS_SNS_MinimalApi + AWS_SQS_Worker
 
 ## AWS_SNS_WebApi + AWS_SQS_WebConsole_Worker
+### Estructura del Proyecto
+```
+AWS_ApiSNS_WorkerSQS_.NET8/
+│
+├── AWS_ClassLibrary/
+│   ├── Context/
+│   │   └── AppDbContext.cs
+│   ├── DTOs/
+│   │   ├── CompanyDTO.cs
+│   │   ├── DonationResultDTO.cs
+│   │   └── ProductDTO.cs
+│   ├── Entities/
+│   │   ├── Company.cs
+│   │   ├── DailyStatistics.cs
+│   │   ├── Donation.cs
+│   │   ├── Product.cs
+│   │   └── UserRewards.cs
+│   ├── Models/
+│   │   ├── ApiResponse.cs
+│   │   ├── AWSOptions.cs
+│   │   ├── DonationProcessingTask.cs
+│   │   ├── DonationTaskData.cs
+│   │   ├── FormDonation.cs
+│   │   ├── FormEmail.cs
+│   │   ├── SnsMessage.cs
+│   │   └── SnsMessageAttribute.cs
+│   ├── Repositories/
+│   │   ├── CompanyRepository.cs
+│   │   ├── ICompanyRepository.cs
+│   │   ├── IProductRepository.cs
+│   │   └── ProductRepository.cs
+│   └── Services/
+│       ├── Application/
+│       │   ├── CompanyService.cs
+│       │   ├── DonationService.cs
+│       │   ├── ICompanyService.cs
+│       │   ├── IDonationService.cs
+│       │   ├── INotificationService.cs
+│       │   ├── IPdfGenerationService.cs
+│       │   ├── IProductService.cs
+│       │   ├── NotificationService.cs
+│       │   ├── PdfGenerationService.cs
+│       │   └── ProductService.cs
+│       ├── Infrastructure/
+│       │   ├── AwsS3Service.cs
+│       │   ├── AwsSnsService.cs
+│       │   ├── AwsSqsService.cs
+│       │   ├── IAwsS3Service.cs
+│       │   ├── IAwsSnsService.cs
+│       │   └── IAwsSqsService.cs
+│       └── Utilities/
+│           └── InvoiceGenerator.cs
+│
+├── AWS_SNS_WebApi/
+│   ├── Controllers/
+│   │   └── DonationsController.cs
+│   ├── Mediators/
+│   │   ├── IApiMediator.cs
+│   │   └── ApiMediator.cs
+│   └── Program.cs
+│
+├── AWS_SQS_WebConsole_Worker/
+│   ├── Mediators/
+│   │   ├── IWorkerMediator.cs
+│   │   └── WorkerMediator.cs
+│   ├── Services/
+│   │   ├── ConsoleSimulatorService.cs
+│   │   ├── DonationProcessor.cs
+│   │   ├── IConsoleSimulatorService.cs
+│   │   └── IDonationProcessor.cs
+│   └── Program.cs
+│
+└── AWS_ApiSNS_WorkerSQS_.NET8.sln
+```
